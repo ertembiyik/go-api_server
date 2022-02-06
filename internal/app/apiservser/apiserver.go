@@ -1,8 +1,11 @@
 package apiserver
 
 import (
+	"encoding/json"
 	"io"
 	"net/http"
+	"webserver/internal/app/model"
+	"webserver/internal/store"
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -12,6 +15,7 @@ type APIServer struct {
 	config *Config
 	logger *logrus.Logger
 	router *mux.Router
+	store  *store.Store
 }
 
 func New(config *Config) *APIServer {
@@ -29,6 +33,10 @@ func (s *APIServer) Start() error {
 	}
 
 	s.configureRouter()
+
+	if err := s.configureStore(); err != nil {
+		return err
+	}
 
 	s.logger.Info("starting apiserver")
 
@@ -48,12 +56,52 @@ func (s *APIServer) configureLogger() error {
 
 func (s *APIServer) configureRouter() {
 	s.router.HandleFunc("/notes", s.getNotes())
+	s.router.HandleFunc("/create_note", s.create_note())
+}
+
+func (s *APIServer) configureStore() error {
+	st := store.New(s.config.Store)
+
+	if err := st.Open(); err != nil {
+		return err
+	}
+
+	s.store = st
+
+	return nil
 }
 
 func (s *APIServer) getNotes() http.HandlerFunc {
 	// here you can define request specific types, variables etc
 
 	return func(rw http.ResponseWriter, r *http.Request) {
-		io.WriteString(rw, "Notes")
+
+		notes, err := s.store.User().GetAll()
+
+		if err != nil {
+			rw.Header().Set("Content-Type", "application/json")
+			io.WriteString(rw, "server error")
+		}
+
+		rw.Header().Set("Content-Type", "application/json")
+		json.Marshal(notes)
+		json.NewEncoder(rw).Encode(notes)
+	}
+}
+
+func (s *APIServer) create_note() http.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request) {
+
+		note := model.User{Email: "ertembiyik@gmail.com", Password: "Body"}
+		noter, err := s.store.User().Create(&note)
+
+		if err != nil {
+			rw.Header().Set("Content-Type", "application/json")
+			io.WriteString(rw, "server error")
+		}
+
+		rw.Header().Set("Content-Type", "application/json")
+		json.Marshal(noter)
+		json.NewEncoder(rw).Encode(noter)
 	}
 }
