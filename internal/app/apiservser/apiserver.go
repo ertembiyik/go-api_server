@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"webserver/internal/app/model"
 	"webserver/internal/store"
-
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 )
@@ -55,8 +54,8 @@ func (s *APIServer) configureLogger() error {
 }
 
 func (s *APIServer) configureRouter() {
-	s.router.HandleFunc("/notes", s.getNotes())
-	s.router.HandleFunc("/create_note", s.create_note())
+	s.router.HandleFunc("/users", s.getUsers())
+	s.router.HandleFunc("/create_user", s.create_note())
 }
 
 func (s *APIServer) configureStore() error {
@@ -71,21 +70,23 @@ func (s *APIServer) configureStore() error {
 	return nil
 }
 
-func (s *APIServer) getNotes() http.HandlerFunc {
+func (s *APIServer) getUsers() http.HandlerFunc {
 	// here you can define request specific types, variables etc
 
 	return func(rw http.ResponseWriter, r *http.Request) {
 
-		notes, err := s.store.User().GetAll()
+		io.WriteString(rw, "Hello")
 
-		if err != nil {
-			rw.Header().Set("Content-Type", "application/json")
-			io.WriteString(rw, "server error")
-		}
+		// notes, err := s.store.User().GetAll()
 
-		rw.Header().Set("Content-Type", "application/json")
-		json.Marshal(notes)
-		json.NewEncoder(rw).Encode(notes)
+		// if err != nil {
+		// 	rw.Header().Set("Content-Type", "application/json")
+		// 	io.WriteString(rw, "server error")
+		// }
+
+		// rw.Header().Set("Content-Type", "application/json")
+		// json.Marshal(notes)
+		// json.NewEncoder(rw).Encode(notes)
 	}
 }
 

@@ -12,10 +12,7 @@ func TestUserRepository_Create(t *testing.T) {
 
 	defer teardown("users")
 
-	u, err := s.User().Create(&model.User{
-		Email: "Hello Go!",
-		Password: "This is body",
-	})
+	u, err := s.User().Create(model.TestUser(t))
 
 	assert.NoError(t, err)
 
